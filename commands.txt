@@ -1,0 +1,8 @@
+1. TO RUN DETECTION
+
+python detect.py --cfg 'Resources/yolov3.cfg' --weights 'Resources/converted.weights' --source 'Resources/cars.mp4' --view-img --names 'Resources/object.names'
+
+-get rid of "--view-img" for post proccessed results
+-other than that the only thing you should change is --source to whatever mp4 file you want, or "0" for computer camera
+-hit "q" to quit video
+-also you can add --conf-thres in order to set the confidence threshold (ie only show cars over 70 percent confidence)
