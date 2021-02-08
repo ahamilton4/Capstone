@@ -4,7 +4,8 @@ from sys import platform
 from utils.models import *  # set ONNX_EXPORT in models.py
 from utils.utils import *
 from utils.datasets import LoadStreams, LoadImages
-
+import Calculations
+from Calculations import density, velocity, vehcileTracker
 
 def detect(save_txt=False, save_img=False):
     img_size = (608, 352) if ONNX_EXPORT else opt.img_size  # (320, 192) or (416, 256) or (608, 352) for (height, width)
@@ -17,6 +18,7 @@ def detect(save_txt=False, save_img=False):
         shutil.rmtree(out)  # delete output folder
     os.makedirs(out)  # make new output folder
 
+    cardict = {}
     # Initialize model
     model = Darknet(opt.cfg, img_size)
 
@@ -63,6 +65,7 @@ def detect(save_txt=False, save_img=False):
         view_img = True
         torch.backends.cudnn.benchmark = True  # set True to speed up constant image size inference
         dataset = LoadStreams(source, img_size=img_size, half=half)
+
     else:
         save_img = True
         dataset = LoadImages(source, img_size=img_size, half=half)
@@ -73,6 +76,7 @@ def detect(save_txt=False, save_img=False):
 
     # Run inference
     t0 = time.time()
+    framecount = 0
     for path, img, im0s, vid_cap in dataset:
         t = time.time()
 
@@ -93,7 +97,8 @@ def detect(save_txt=False, save_img=False):
             pred = apply_classifier(pred, modelc, img, im0s)
 
         # Process detections
-        for i, det in enumerate(pred):  # detections per image
+        for i, det in enumerate(pred):
+            framecount += 1# detections per image
             if webcam:  # batch_size >= 1
                 p, s, im0 = path[i], '%g: ' % i, im0s[i]
             else:
@@ -112,17 +117,20 @@ def detect(save_txt=False, save_img=False):
 
                 # Write results
                 for *xyxy, conf, cls in det:
-                    if save_txt:  # Write to file
+                    xyxy = [int(xyxy[0]), int(xyxy[1]), int(xyxy[2]), int(xyxy[3])]
+                    cardict, carnum = Calculations.correlation(cardict, xyxy, framecount, im0.shape[0], im0.shape[1])
+                    if 1==1:  # Write to file
                         with open(save_path + '.txt', 'a') as file:
                             file.write(('%g ' * 6 + '\n') % (*xyxy, cls, conf))
 
                     if save_img or view_img:  # Add bbox to image
-                        label = '%s %.2f' % (names[int(cls)], conf)
+                        label = '#%s' % (carnum)
                         plot_one_box(xyxy, im0, label=label, color=colors[int(cls)])
-
-                # here is where we are going to write most of our code for display
-            print('%sDone. (%.3fs)' % (s, time.time() - t))
-
+            # print(f"x:{im0.shape[1]},y:{img.shape[2]}")
+            # print(framearray)
+            # print('%sDone. (%.3fs)' % (s, time.time() - t))
+            # print("YOOYOYO",framecount)
+            #print(cardict)
             # Stream results
             if view_img:
                 cv2.imshow(p, im0)
@@ -144,7 +152,6 @@ def detect(save_txt=False, save_img=False):
                         h = int(vid_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
                         vid_writer = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*opt.fourcc), fps, (w, h))
                     vid_writer.write(im0)
-
     if save_txt or save_img:
         print('Results saved to %s' % os.getcwd() + os.sep + out)
         if platform == 'darwin':  # MacOS
