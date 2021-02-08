@@ -13,11 +13,11 @@ def vehcileTracker(outputs):
     return
 
 
-def correlation(carsdict, xyxy, framenumber, resx, resy):
+def correlation(carsdict, xyxy, framenumber, resx, resy, fps):
     diffx = (xyxy[2]-xyxy[0])
     diffy = (xyxy[3]-xyxy[1])
     ratio = ((diffx+diffy)/2)/30
-    threshold = 30*((1080*720)/(resx*resy))*(ratio)
+    threshold = 30*((1080*720)/(resx*resy))*(ratio)*(30/fps)
     iterlen = len(carsdict)
     validated = False
     carnum = 1

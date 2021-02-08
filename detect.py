@@ -78,6 +78,10 @@ def detect(save_txt=False, save_img=False):
     t0 = time.time()
     framecount = 0
     for path, img, im0s, vid_cap in dataset:
+        try:
+            fps = round(vid_cap.get(cv2.CAP_PROP_FPS),0)
+        except:
+            fps = 30
         t = time.time()
 
         # Get detections
@@ -118,7 +122,7 @@ def detect(save_txt=False, save_img=False):
                 # Write results
                 for *xyxy, conf, cls in det:
                     xyxy = [int(xyxy[0]), int(xyxy[1]), int(xyxy[2]), int(xyxy[3])]
-                    cardict, carnum = Calculations.correlation(cardict, xyxy, framecount, im0.shape[0], im0.shape[1])
+                    cardict, carnum = Calculations.correlation(cardict, xyxy, framecount, im0.shape[0], im0.shape[1],fps)
                     if 1==1:  # Write to file
                         with open(save_path + '.txt', 'a') as file:
                             file.write(('%g ' * 6 + '\n') % (*xyxy, cls, conf))
@@ -156,7 +160,6 @@ def detect(save_txt=False, save_img=False):
         print('Results saved to %s' % os.getcwd() + os.sep + out)
         if platform == 'darwin':  # MacOS
             os.system('open ' + out + ' ' + save_path)
-
     print('Done. (%.3fs)' % (time.time() - t0))
 
 
