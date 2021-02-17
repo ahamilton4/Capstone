@@ -25,6 +25,8 @@ def correlation(carsdict, xyxy, framenumber, resx, resy, fps):
         one = str(framenumber-1)
         two = str(framenumber-2)
         three = str(framenumber-3)
+        four = str(framenumber-4)
+        five = str(framenumber-5)
         try:
             old1 = carsdict[str(i+1)][one]
         except:
@@ -37,6 +39,14 @@ def correlation(carsdict, xyxy, framenumber, resx, resy, fps):
             old3 = carsdict[str(i+1)][three]
         except:
             old3 = [1000000,1000000,100000,1000000]
+        try:
+            old4 = carsdict[str(i + 1)][three]
+        except:
+            old4 = [1000000, 1000000, 100000, 1000000]
+        try:
+            old5 = carsdict[str(i + 1)][three]
+        except:
+            old5 = [1000000, 1000000, 100000, 1000000]
         if abs(old1[0]-xyxy[0]) <= threshold and abs(old1[1]-xyxy[1]) <= threshold and abs(old1[2]-xyxy[2]) <= threshold and abs(old1[3]-xyxy[3]) <= threshold:
             carsdict[str(i+1)][str(framenumber)] = xyxy
             validated = True
@@ -48,6 +58,16 @@ def correlation(carsdict, xyxy, framenumber, resx, resy, fps):
             carnum = i + 1
             break
         if abs(old3[0]-xyxy[0]) <= threshold and abs(old3[1]-xyxy[1]) <= threshold and abs(old3[2]-xyxy[2]) <= threshold and abs(old3[3]-xyxy[3]) <= threshold:
+            carsdict[str(i+1)][str(framenumber)] = xyxy
+            validated = True
+            carnum = i + 1
+            break
+        if abs(old4[0]-xyxy[0]) <= threshold and abs(old4[1]-xyxy[1]) <= threshold and abs(old4[2]-xyxy[2]) <= threshold and abs(old4[3]-xyxy[3]) <= threshold:
+            carsdict[str(i+1)][str(framenumber)] = xyxy
+            validated = True
+            carnum = i + 1
+            break
+        if abs(old5[0]-xyxy[0]) <= threshold and abs(old5[1]-xyxy[1]) <= threshold and abs(old5[2]-xyxy[2]) <= threshold and abs(old5[3]-xyxy[3]) <= threshold:
             carsdict[str(i+1)][str(framenumber)] = xyxy
             validated = True
             carnum = i + 1

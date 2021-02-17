@@ -160,6 +160,7 @@ def detect(save_txt=False, save_img=False):
         print('Results saved to %s' % os.getcwd() + os.sep + out)
         if platform == 'darwin':  # MacOS
             os.system('open ' + out + ' ' + save_path)
+    print(cardict)
     print('Done. (%.3fs)' % (time.time() - t0))
 
 
