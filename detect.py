@@ -130,6 +130,13 @@ def detect(save_txt=False, save_img=False):
                     if save_img or view_img:  # Add bbox to image
                         label = '#%s' % (carnum)
                         plot_one_box(xyxy, im0, label=label, color=colors[int(cls)])
+            road,ch = Calculations.road(cardict, framecount, im0.shape[0], im0.shape[1])
+            hull = np.array(ch)
+            print(f"FRAME: {framecount}")
+            cv2.polylines(im0,np.int32([hull]),False,(0,255,0),10)
+
+            # for cord in road:
+            #     cv2.rectangle(im0, (cord[0], cord[1]), (cord[2], cord[3]), (255, 0, 0), 2)
             # print(f"x:{im0.shape[1]},y:{img.shape[2]}")
             # print(framearray)
             # print('%sDone. (%.3fs)' % (s, time.time() - t))
