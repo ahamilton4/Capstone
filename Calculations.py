@@ -28,9 +28,10 @@ def road(dict,frame,resx,resy):
             value = car[frame]
             sumarray.append(value[0] + value[1] + value[2] + value[3])
             range2 = max(sumarray) - min(sumarray)
-        if range2 < 100:
+        if range2 < 100 * ((1080*720)/(ymax*xmax)):
             dontcountarray.append(entry)
 
+    carsarray  = []
     for entry in dict:
         car = dict[entry]
         if entry not in dontcountarray:

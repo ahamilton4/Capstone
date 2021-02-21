@@ -133,7 +133,13 @@ def detect(save_txt=False, save_img=False):
             road,ch = Calculations.road(cardict, framecount, im0.shape[0], im0.shape[1])
             hull = np.array(ch)
             print(f"FRAME: {framecount}")
-            cv2.polylines(im0,np.int32([hull]),False,(0,255,0),10)
+            try:
+                print("true")
+                cv2.polylines(im0,np.int32([hull]),True,(0,255,0),10)
+            except:
+                print("false")
+                cv2.polylines(im0, np.int32([hull]), False, (0, 255, 0), 10)
+            print(hull)
 
             # for cord in road:
             #     cv2.rectangle(im0, (cord[0], cord[1]), (cord[2], cord[3]), (255, 0, 0), 2)
