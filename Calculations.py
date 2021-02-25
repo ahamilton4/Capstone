@@ -15,6 +15,7 @@ def road(dict,frame,resx,resy):
     xarray = []
     yarray = []
 
+    numcars = 0
     box = {}
     for x in range(1, 10):
         for y in range(1, 10):
@@ -55,6 +56,7 @@ def road(dict,frame,resx,resy):
                             box[key].append(1)
                 if int(dictframe) == frame:
                     cararea += (value[2]-value[0])*(value[3]-value[1])
+                    numcars += 1
 
     roadi = []
     coords = []
@@ -89,12 +91,26 @@ def road(dict,frame,resx,resy):
     center = tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), coords), [len(coords)] * 2))
     coords = sorted(coords, key=lambda coord: (-135 - math.degrees(math.atan2(*tuple(map(operator.sub, coord, center))[::-1]))) % 360)
 
-    ordered = []
 
+    ordered = []
+    area = 0
+    q = coords[-1]
     for i,entry in enumerate(coords):
         ordered.append([entry[0],entry[1]])
+        if i % 2 == 0:
+            print(entry)
+            area += entry[0]*q[1] - entry[1]*q[0]
+            q = entry
+    try:
+        density = cararea/(area/2) * 100
+    except:
+        density = 0
+
+    if density > 100:
+        density = 0
+
     ordered.append([coords[0][0], coords[0][1]])
-    return roadi, ordered
+    return roadi, ordered, density, numcars
 
 def velocity(outputs):
     print("velocity")

@@ -132,7 +132,7 @@ def detect(save_txt=False, save_img=False):
                     if save_img or view_img:  # Add bbox to image
                         label = '#%s' % (carnum)
                         plot_one_box(xyxy, im0, label=label, color=colors[int(cls)])
-            road,ch = Calculations.road(cardict, framecount, im0.shape[0], im0.shape[1])
+            road,ch, density, numcars = Calculations.road(cardict, framecount, im0.shape[0], im0.shape[1])
             hull = np.array(ch)
             blk = np.zeros(im0.shape,np.uint8)
             try:
@@ -150,19 +150,23 @@ def detect(save_txt=False, save_img=False):
 
             cv2.rectangle(output, c1box, c2box, (0, 0, 0), thickness=cv2.FILLED)
 
-            calculations = ['DENSITY', 'VELOCITY']
+            calculations = ['DENSITY', 'VELOCITY', '# CARS']
+            results = [density, 0000, numcars]
 
             for index, calculation in enumerate(calculations):
 
                 xlabel = int(x - (x/4))
-                ylabel = int(y - (y/5) + 200*(index/len(calculation)))
+                ylabel = int(y - (y/5) + (20 * (index))+20)
                 string = f"{calculation}:"
                 org = tuple([xlabel,ylabel])
                 cv2.putText(img=output, text=string, org=org, fontFace=cv2.FONT_HERSHEY_PLAIN,fontScale=1.0,color=(255,255,255),thickness=1)
 
                 xlabel = int(x - (x / 6))
                 org = tuple([xlabel,ylabel])
-                string = f"{500}"
+                if index == 0:
+                    string = f"{round(results[0],2)}%"
+                else:
+                    string = f"{results[index]}"
                 cv2.putText(img=output, text=string, org=org, fontFace=cv2.FONT_HERSHEY_PLAIN,fontScale=1.0,color=(255,255,255),thickness=1)
 
             boxes = 20
@@ -170,7 +174,7 @@ def detect(save_txt=False, save_img=False):
             for i in range(boxes):
                 y1= int(y-(y/4))
                 y2= int(y1 + width-2)
-                if framecount > (numframes * (i+1)/width):
+                if framecount > (numframes * (i+1)/boxes):
                     x1 = int(x-(x/4)+(i*width))
                     x2 = int(x1 + width-2)
                     c1 = tuple([x1,y1])
