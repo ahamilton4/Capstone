@@ -3,6 +3,9 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from scipy.spatial import ConvexHull
 import numpy as np
+from functools import reduce
+import operator
+import math
 
 def density(xyxy):
 
@@ -24,19 +27,20 @@ def road(dict,frame,resx,resy):
     for entry in dict:
         sumarray = []
         car = dict[entry]
-        for frame in car:
-            value = car[frame]
+        for dictframe in car:
+            value = car[dictframe]
             sumarray.append(value[0] + value[1] + value[2] + value[3])
             range2 = max(sumarray) - min(sumarray)
         if range2 < 100 * ((1080*720)/(ymax*xmax)):
             dontcountarray.append(entry)
 
     carsarray  = []
+    cararea = 0
     for entry in dict:
         car = dict[entry]
         if entry not in dontcountarray:
-            for frame in car:
-                value = car[frame]
+            for dictframe in car:
+                value = car[dictframe]
                 midx = value[2] - (value[2] - value[0])
                 midy = value[3] - (value[3] - value[1])
 
@@ -49,8 +53,12 @@ def road(dict,frame,resx,resy):
                     if midx != 0 and midy != 0:
                         if midx > (x - 1) * (1/9) * xmax and midx < x * (1/9) * xmax and midy > (y - 1) * (1/9) * ymax and midy < y * (1/9) * ymax:
                             box[key].append(1)
+                if int(dictframe) == frame:
+                    cararea += (value[2]-value[0])*(value[3]-value[1])
+
     roadi = []
     coords = []
+
     for key in box:
         x = int(key[1]) * (1/9) * xmax
         y = int(key[4]) * (1/9) * ymax
@@ -67,19 +75,26 @@ def road(dict,frame,resx,resy):
             roadi.append(coord)
             coords.append(cord1)
             coords.append(cord2)
+
     nparray = np.array(coords)
-    newcoord = []
+    coords = []
     try:
         results = ConvexHull(nparray)
         for simplex in results.simplices:
-            print(nparray[simplex,0],nparray[simplex,1])
-            newcoord.append([nparray[simplex, 0][0], nparray[simplex, 1][0]])
-            newcoord.append([nparray[simplex, 0][1], nparray[simplex, 1][1]])
-
+            coords.append((nparray[simplex, 0][0], nparray[simplex, 1][0]))
+            coords.append((nparray[simplex, 0][1], nparray[simplex, 1][1]))
     except:
-        print("Not working")
+        coords = [(0,0),(0,0)]
 
-    return roadi, newcoord
+    center = tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), coords), [len(coords)] * 2))
+    coords = sorted(coords, key=lambda coord: (-135 - math.degrees(math.atan2(*tuple(map(operator.sub, coord, center))[::-1]))) % 360)
+
+    ordered = []
+
+    for i,entry in enumerate(coords):
+        ordered.append([entry[0],entry[1]])
+    ordered.append([coords[0][0], coords[0][1]])
+    return roadi, ordered
 
 def velocity(outputs):
     print("velocity")
@@ -94,7 +109,7 @@ def correlation(carsdict, xyxy, framenumber, resx, resy, fps):
     diffx = (xyxy[2]-xyxy[0])
     diffy = (xyxy[3]-xyxy[1])
     ratio = ((diffx+diffy)/2)/30
-    threshold = 30*((1080*720)/(resx*resy))*(ratio)*(30/fps)
+    threshold = 30*((resx*resy)/(1080*720))*(ratio)*(30/fps)
     iterlen = len(carsdict)
     validated = False
     carnum = 1

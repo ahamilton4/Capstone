@@ -78,10 +78,12 @@ def detect(save_txt=False, save_img=False):
     t0 = time.time()
     framecount = 0
     for path, img, im0s, vid_cap in dataset:
+        numframes = vid_cap.get(cv2.CAP_PROP_FRAME_COUNT)
         try:
             fps = round(vid_cap.get(cv2.CAP_PROP_FPS),0)
         except:
             fps = 30
+
         t = time.time()
 
         # Get detections
@@ -132,32 +134,62 @@ def detect(save_txt=False, save_img=False):
                         plot_one_box(xyxy, im0, label=label, color=colors[int(cls)])
             road,ch = Calculations.road(cardict, framecount, im0.shape[0], im0.shape[1])
             hull = np.array(ch)
-            print(f"FRAME: {framecount}")
+            blk = np.zeros(im0.shape,np.uint8)
             try:
-                print("true")
-                cv2.polylines(im0,np.int32([hull]),True,(0,255,0),10)
+                cv2.fillPoly(blk,np.int32([hull]),(255,255,255))
             except:
-                print("false")
-                cv2.polylines(im0, np.int32([hull]), False, (0, 255, 0), 10)
-            print(hull)
+                print("")
+            output = cv2.addWeighted(im0,1.0,blk,0.4,1)
 
-            # for cord in road:
-            #     cv2.rectangle(im0, (cord[0], cord[1]), (cord[2], cord[3]), (255, 0, 0), 2)
-            # print(f"x:{im0.shape[1]},y:{img.shape[2]}")
-            # print(framearray)
-            # print('%sDone. (%.3fs)' % (s, time.time() - t))
+            x = im0.shape[1]
+            y = im0.shape[0]
+            # c1 = tuple([int(im0.shape[0] - (im0.shape[0]/4)),int(im0.shape[1])])
+            # c2 = tuple([int(im0.shape[0]),int(im0.shape[1] - (im0.shape[1]/4))])
+            c1box = tuple([x , int(y - (y / 4))])
+            c2box = tuple([int(x - (x / 4)) , y])
+
+            cv2.rectangle(output, c1box, c2box, (0, 0, 0), thickness=cv2.FILLED)
+
+            calculations = ['DENSITY', 'VELOCITY']
+
+            for index, calculation in enumerate(calculations):
+
+                xlabel = int(x - (x/4))
+                ylabel = int(y - (y/5) + 200*(index/len(calculation)))
+                string = f"{calculation}:"
+                org = tuple([xlabel,ylabel])
+                cv2.putText(img=output, text=string, org=org, fontFace=cv2.FONT_HERSHEY_PLAIN,fontScale=1.0,color=(255,255,255),thickness=1)
+
+                xlabel = int(x - (x / 6))
+                org = tuple([xlabel,ylabel])
+                string = f"{500}"
+                cv2.putText(img=output, text=string, org=org, fontFace=cv2.FONT_HERSHEY_PLAIN,fontScale=1.0,color=(255,255,255),thickness=1)
+
+            boxes = 20
+            width = (x/4)/boxes
+            for i in range(boxes):
+                y1= int(y-(y/4))
+                y2= int(y1 + width-2)
+                if framecount > (numframes * (i+1)/width):
+                    x1 = int(x-(x/4)+(i*width))
+                    x2 = int(x1 + width-2)
+                    c1 = tuple([x1,y1])
+                    c2 = tuple([x2,y2])
+                    cv2.rectangle(output,c1,c2,(255,255,255),thickness=cv2.FILLED)
+
+            print('%sDone. (%.3fs)' % (s, time.time() - t))
             # print("YOOYOYO",framecount)
             #print(cardict)
             # Stream results
             if view_img:
-                cv2.imshow(p, im0)
+                cv2.imshow(p, output)
                 if cv2.waitKey(1) == ord('q'):  # q to quit
                     raise StopIteration
 
             # Save results (image with detections)
             if save_img:
                 if dataset.mode == 'images':
-                    cv2.imwrite(save_path, im0)
+                    cv2.imwrite(save_path, output)
                 else:
                     if vid_path != save_path:  # new video
                         vid_path = save_path
@@ -168,7 +200,7 @@ def detect(save_txt=False, save_img=False):
                         w = int(vid_cap.get(cv2.CAP_PROP_FRAME_WIDTH))
                         h = int(vid_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
                         vid_writer = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*opt.fourcc), fps, (w, h))
-                    vid_writer.write(im0)
+                    vid_writer.write(output)
     if save_txt or save_img:
         print('Results saved to %s' % os.getcwd() + os.sep + out)
         if platform == 'darwin':  # MacOS
