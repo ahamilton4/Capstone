@@ -5,7 +5,6 @@ from utils.models import *  # set ONNX_EXPORT in models.py
 from utils.utils import *
 from utils.datasets import LoadStreams, LoadImages
 import Calculations
-from Calculations import density, velocity, vehcileTracker
 
 def detect(save_txt=False, save_img=False):
     img_size = (608, 352) if ONNX_EXPORT else opt.img_size  # (320, 192) or (416, 256) or (608, 352) for (height, width)
@@ -122,8 +121,10 @@ def detect(save_txt=False, save_img=False):
                     s += '%g %ss, ' % (n, names[int(c)])  # add to string
 
                 # Write results
+                alldetects = []
                 for *xyxy, conf, cls in det:
                     xyxy = [int(xyxy[0]), int(xyxy[1]), int(xyxy[2]), int(xyxy[3])]
+                    alldetects.append(xyxy)
                     cardict, carnum = Calculations.correlation(cardict, xyxy, framecount, im0.shape[0], im0.shape[1],fps)
                     if 1==1:  # Write to file
                         with open(save_path + '.txt', 'a') as file:
@@ -131,8 +132,21 @@ def detect(save_txt=False, save_img=False):
 
                     if save_img or view_img:  # Add bbox to image
                         label = '#%s' % (carnum)
-                        plot_one_box(xyxy, im0, label=label, color=colors[int(cls)])
-            road,ch, density, numcars = Calculations.road(cardict, framecount, im0.shape[0], im0.shape[1])
+
+            dcarray = Calculations.validcars(cardict,im0.shape[0],im0.shape[1], framecount)
+            ch, roadarea = Calculations.road(cardict,im0.shape[0], im0.shape[1],dcarray)
+            numcars, cararea, xyxy = Calculations.carsonroad(alldetects,ch)
+
+            for det in xyxy:
+                plot_one_box(det,im0,color = (255,0,0))
+            try:
+                density = cararea / (roadarea / 2) * 100
+            except:
+                density = 0
+
+            if density > 100:
+                density = 0
+
             hull = np.array(ch)
             blk = np.zeros(im0.shape,np.uint8)
             try:

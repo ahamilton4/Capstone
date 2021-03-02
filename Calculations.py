@@ -1,21 +1,55 @@
-from math import sqrt
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
 from scipy.spatial import ConvexHull
 import numpy as np
 from functools import reduce
 import operator
 import math
+from shapely.geometry import Point, Polygon
 
-def density(xyxy):
 
-    return
+def validcars(dict,resx,resy, framenumber):
+    dontcountarray = []
+    cararea = 0
+    carnum = 0
 
-def road(dict,frame,resx,resy):
+    for entry in dict:
+        sumarray = []
+        car = dict[entry]
+        for dictframe in car:
+            value = car[dictframe]
+            sumarray.append(value[0] + value[1] + value[2] + value[3])
+            range2 = max(sumarray) - min(sumarray)
+        if range2 < 100 * ((1080 * 720) / (resx * resy)):
+            dontcountarray.append(entry)
+        elif f"{framenumber}" in car:
+            carnum += 1
+            cararea += (value[2]-value[0])*(value[3]-value[1])
+
+    return dontcountarray
+
+def carsonroad(detections,ordered):
+
+    converted = []
+    for point in ordered:
+        converted.append((point[0],point[1]))
+    poly = Polygon(converted)
+    gooddetections = []
+    numcars = 0
+    area = 0
+    for point in detections:
+        x = point[2]-((point[2] - point[0])/2)
+        y = point[3]-((point[3] - point[1])/2)
+        p1 = Point(x,y)
+        if p1.within(poly):
+            numcars += 1
+            area += (point[2]-point[0])*(point[3]-point[1])
+            gooddetections.append([point[0],point[1],point[2],point[3]])
+
+    return numcars, area, gooddetections
+
+def road(dict,resx,resy,dontcountarray):
     xarray = []
     yarray = []
 
-    numcars = 0
     box = {}
     for x in range(1, 10):
         for y in range(1, 10):
@@ -24,18 +58,6 @@ def road(dict,frame,resx,resy):
     ymax = resx
     xmax = resy
 
-    dontcountarray = []
-    for entry in dict:
-        sumarray = []
-        car = dict[entry]
-        for dictframe in car:
-            value = car[dictframe]
-            sumarray.append(value[0] + value[1] + value[2] + value[3])
-            range2 = max(sumarray) - min(sumarray)
-        if range2 < 100 * ((1080*720)/(ymax*xmax)):
-            dontcountarray.append(entry)
-
-    carsarray  = []
     cararea = 0
     for entry in dict:
         car = dict[entry]
@@ -54,9 +76,6 @@ def road(dict,frame,resx,resy):
                     if midx != 0 and midy != 0:
                         if midx > (x - 1) * (1/9) * xmax and midx < x * (1/9) * xmax and midy > (y - 1) * (1/9) * ymax and midy < y * (1/9) * ymax:
                             box[key].append(1)
-                if int(dictframe) == frame:
-                    cararea += (value[2]-value[0])*(value[3]-value[1])
-                    numcars += 1
 
     roadi = []
     coords = []
@@ -101,24 +120,11 @@ def road(dict,frame,resx,resy):
             print(entry)
             area += entry[0]*q[1] - entry[1]*q[0]
             q = entry
-    try:
-        density = cararea/(area/2) * 100
-    except:
-        density = 0
-
-    if density > 100:
-        density = 0
 
     ordered.append([coords[0][0], coords[0][1]])
-    return roadi, ordered, density, numcars
 
-def velocity(outputs):
-    print("velocity")
-    return
+    return ordered, area
 
-def vehcileTracker(outputs):
-    print("vehicleTracker")
-    return
 
 
 def correlation(carsdict, xyxy, framenumber, resx, resy, fps):
