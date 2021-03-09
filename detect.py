@@ -164,24 +164,24 @@ def detect(save_txt=False, save_img=False):
 
             cv2.rectangle(output, c1box, c2box, (0, 0, 0), thickness=cv2.FILLED)
 
-            calculations = ['DENSITY', 'VELOCITY', '# CARS']
-            results = [density, 0000, numcars]
+            calculations = ['DENSITY', '# VEHICLES']
+            results = [density, numcars]
 
             for index, calculation in enumerate(calculations):
 
                 xlabel = int(x - (x/4))
-                ylabel = int(y - (y/5) + (20 * (index))+20)
+                ylabel = int(y - (y/5) + (50 * (index))+50)
                 string = f"{calculation}:"
                 org = tuple([xlabel,ylabel])
-                cv2.putText(img=output, text=string, org=org, fontFace=cv2.FONT_HERSHEY_PLAIN,fontScale=1.0,color=(255,255,255),thickness=1)
+                cv2.putText(img=output, text=string, org=org, fontFace=cv2.FONT_HERSHEY_PLAIN,fontScale=2.0,color=(255,255,255),thickness=1)
 
-                xlabel = int(x - (x / 6))
+                xlabel = int(x - (x / 8))
                 org = tuple([xlabel,ylabel])
                 if index == 0:
                     string = f"{round(results[0],2)}%"
                 else:
                     string = f"{results[index]}"
-                cv2.putText(img=output, text=string, org=org, fontFace=cv2.FONT_HERSHEY_PLAIN,fontScale=1.0,color=(255,255,255),thickness=1)
+                cv2.putText(img=output, text=string, org=org, fontFace=cv2.FONT_HERSHEY_PLAIN,fontScale=2.0,color=(255,255,255),thickness=1)
 
             boxes = 20
             width = (x/4)/boxes
