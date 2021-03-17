@@ -136,13 +136,18 @@ def detect(save_txt=False, save_img=False):
             dcarray = Calculations.validcars(cardict,im0.shape[0],im0.shape[1], framecount)
             ch, roadarea = Calculations.road(cardict,im0.shape[0], im0.shape[1],dcarray)
             numcars, cararea, xyxy = Calculations.carsonroad(alldetects,ch)
+            flowin,flowout = Calculations.flowrate(cardict,fps, dcarray, 1, framecount, numcars)
+
+            flowin = round(flowin, 2)
+            flowout = round(flowout,2)
+
 
             for det in xyxy:
                 plot_one_box(det,im0,color = (255,0,0))
             try:
                 density = cararea / (roadarea / 2) * 100
             except:
-                density = 0
+                density = 0.0
 
             if density > 100:
                 density = 0
@@ -164,24 +169,35 @@ def detect(save_txt=False, save_img=False):
 
             cv2.rectangle(output, c1box, c2box, (0, 0, 0), thickness=cv2.FILLED)
 
-            calculations = ['DENSITY', '# VEHICLES']
-            results = [density, numcars]
+            calculations = ['DENSITY', 'COUNT', 'FLOW IN', 'FLOW OUT']
+            results = [density, numcars, flowin, flowout]
 
             for index, calculation in enumerate(calculations):
 
                 xlabel = int(x - (x/4))
-                ylabel = int(y - (y/5) + (50 * (index))+50)
+                ylabel = int(y - (y/5) + (20 * (index))+20)
                 string = f"{calculation}:"
                 org = tuple([xlabel,ylabel])
-                cv2.putText(img=output, text=string, org=org, fontFace=cv2.FONT_HERSHEY_PLAIN,fontScale=2.0,color=(255,255,255),thickness=1)
+                cv2.putText(img=output, text=string, org=org, fontFace=cv2.FONT_HERSHEY_PLAIN,fontScale=1.0,color=(255,255,255),thickness=1)
 
                 xlabel = int(x - (x / 8))
                 org = tuple([xlabel,ylabel])
                 if index == 0:
-                    string = f"{round(results[0],2)}%"
+                    if results[0] != 0.0 and framecount > numframes * .2:
+                        string = f"{round(results[0],2)} %"
+                    else:
+                        string = "CALCULATING.."
+                elif index == 1:
+                    if results[1] != 0 and framecount > numframes * .2:
+                        string = f"{results[index]} CARS"
+                    else:
+                        string = "CALCULATING.."
                 else:
-                    string = f"{results[index]}"
-                cv2.putText(img=output, text=string, org=org, fontFace=cv2.FONT_HERSHEY_PLAIN,fontScale=2.0,color=(255,255,255),thickness=1)
+                    if flowout != 0 and framecount > numframes * .2:
+                        string = f"{results[index]} CARS/MINUTE"
+                    else:
+                        string = "CALCULATING.."
+                cv2.putText(img=output, text=string, org=org, fontFace=cv2.FONT_HERSHEY_PLAIN,fontScale=1.0,color=(255,255,255),thickness=1)
 
             boxes = 20
             width = (x/4)/boxes

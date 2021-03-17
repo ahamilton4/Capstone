@@ -26,6 +26,29 @@ def validcars(dict,resx,resy, framenumber):
 
     return dontcountarray
 
+def flowrate(dict,fps,dontcount,start,end, numcars):
+
+    into = 0
+    out = 0
+    for entry in dict:
+        car = dict[entry]
+        if entry not in dontcount:
+            firstframe = int(list(car.keys())[0])
+            lastframe = int(list(car.keys())[-1])
+            if firstframe > start:
+                into += 1
+            if lastframe < end:
+                out += 1
+
+    try:
+        flowin = (into * fps * 60)/end
+        flowout = (out * fps* 60)/end
+    except:
+        flowin = 0
+        flowout = 0
+
+    return flowin,flowout
+
 def carsonroad(detections,ordered):
 
     converted = []
@@ -117,7 +140,7 @@ def road(dict,resx,resy,dontcountarray):
     for i,entry in enumerate(coords):
         ordered.append([entry[0],entry[1]])
         if i % 2 == 0:
-            print(entry)
+
             area += entry[0]*q[1] - entry[1]*q[0]
             q = entry
 
@@ -192,5 +215,6 @@ def correlation(carsdict, xyxy, framenumber, resx, resy, fps):
         carsdict[str(length+1)] = {str(framenumber):xyxy}
         carnum = length + 1
     return carsdict, carnum
+
 
 
