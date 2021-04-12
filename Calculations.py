@@ -7,6 +7,13 @@ from shapely.geometry import Point, Polygon
 
 
 def validcars(dict,resx,resy, framenumber):
+    """
+    :param dict: Car Dictionary Consisting of all of the Detections by Vehicle Number
+    :param resx: Video Resolution x
+    :param resy: Video Resolution Y
+    :param framenumber: Current Frame Number
+    :return: Returns an array of car that do not move (ie. are bad detections)
+    """
     dontcountarray = []
     cararea = 0
     carnum = 0
@@ -26,7 +33,16 @@ def validcars(dict,resx,resy, framenumber):
 
     return dontcountarray
 
-def flowrate(dict,fps,dontcount,start,end, numcars):
+def flowrate(dict,fps,dontcount,start,end):
+
+    """
+    :param dict: Car Dictionary Consisting of all of the Detections by Vehicle Number
+    :param fps: Frames per second of video
+    :param dontcount: Cars that are bad detections
+    :param start: Starting frame for caluclation
+    :param end: End frame for calculation
+    :return: Returns the flow in and flow out over given time frame
+    """
 
     into = 0
     out = 0
@@ -51,6 +67,11 @@ def flowrate(dict,fps,dontcount,start,end, numcars):
 
 def carsonroad(detections,ordered):
 
+    """
+    :param detections: Detections for the current frame
+    :param ordered: Polygon for the road
+    :return: Number of cars, area of road, coordinates for detections in the area of the road
+    """
     converted = []
     for point in ordered:
         converted.append((point[0],point[1]))
@@ -70,6 +91,14 @@ def carsonroad(detections,ordered):
     return numcars, area, gooddetections
 
 def road(dict,resx,resy,dontcountarray):
+    """
+    :param dict: Car Dictionary Consisting of all of the Detections by Vehicle Number
+    :param resx: Video Resolution x
+    :param resy: Video Resolution y
+    :param dontcountarray: Cars that are not moving
+    :return: Returns coordinates of the road along with area
+    """
+
     xarray = []
     yarray = []
 
@@ -151,6 +180,16 @@ def road(dict,resx,resy,dontcountarray):
 
 
 def correlation(carsdict, xyxy, framenumber, resx, resy, fps):
+    """
+    :param carsdict: Car Dictionary Consisting of all of the Detections by Vehicle Number
+    :param xyxy: All of the detections in the current frame
+    :param framenumber: Current frame number of video
+    :param resx: Video Resolution x
+    :param resy: Video Resolution y
+    :param fps: Frames per second of video
+    :return: Determines if a detection is a car by looking at the prior five frames and looking for cars that have been
+    near that vehicle. Returns the cars dictionary with all of the cars in the given frame added to it
+    """
     diffx = (xyxy[2]-xyxy[0])
     diffy = (xyxy[3]-xyxy[1])
     ratio = ((diffx+diffy)/2)/30

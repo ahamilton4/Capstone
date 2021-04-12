@@ -136,7 +136,7 @@ def detect(save_txt=False, save_img=False):
             dcarray = Calculations.validcars(cardict,im0.shape[0],im0.shape[1], framecount)
             ch, roadarea = Calculations.road(cardict,im0.shape[0], im0.shape[1],dcarray)
             numcars, cararea, xyxy = Calculations.carsonroad(alldetects,ch)
-            flowin,flowout = Calculations.flowrate(cardict,fps, dcarray, 1, framecount, numcars)
+            flowin,flowout = Calculations.flowrate(cardict,fps, dcarray, 1, framecount)
 
             flowin = round(flowin, 2)
             flowout = round(flowout,2)
